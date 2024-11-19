@@ -9,11 +9,12 @@ conn = sqlite3.connect("compliance_tracker.db")
 
 cursor = conn.cursor()
 
-# Twilio Credentials (Use your own credentials)
-TWILIO_ACCOUNT_SID = "AC3d0179d31bda1e4dde5e4eaa9de9edea" 
-TWILIO_AUTH_TOKEN = "3c613bee5dee896ea708f5170c5b744c"  
-TWILIO_PHONE_NUMBER = "+15865018392"  
-recipient_phone_number = "+919153831641"  
+
+TWILIO_ACCOUNT_SID = st.secrets["TWILIO_ACCOUNT_SID"]
+TWILIO_AUTH_TOKEN = st.secrets["TWILIO_AUTH_TOKEN"]
+TWILIO_PHONE_NUMBER = st.secrets["TWILIO_PHONE_NUMBER"]
+RECIPIENT_PHONE_NUMBER = st.secrets["RECIPIENT_PHONE_NUMBER"]
+
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Function to send SMS
@@ -22,7 +23,7 @@ def send_sms(message):
         client.messages.create(
             body=message,
             from_=TWILIO_PHONE_NUMBER,
-            to=recipient_phone_number
+            to=RECIPIENT_PHONE_NUMBER
         )
         st.success("SMS sent successfully!")
     except Exception as e:
