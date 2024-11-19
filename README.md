@@ -1,4 +1,6 @@
-# Compliance Tracker  
+# Compliance Tracker 
+
+## Streamlit Web App - https://compliancetrackerpy-md.streamlit.app/
 
 ## Overview  
 The **Compliance Tracker** is a web-based application designed to help organizations manage and track compliance milestones effectively. It allows users to add milestones, update their statuses, calculate compliance scores, identify overdue tasks, and send notifications (via SMS or WhatsApp) for important updates.  
@@ -55,7 +57,40 @@ CREATE TABLE milestones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     due_date TEXT NOT NULL,
-    status TEXT DEFAULT 'Pending'}
+    status TEXT DEFAULT 'Pending'
+);
+```
+
+### Configure secrets for Twilio:
+
+To enable SMS/WhatsApp notifications, add your Twilio credentials and phone numbers in the secrets.toml file. The structure should look like this:
+
+```toml
+TWILIO_ACCOUNT_SID = "your_account_sid"
+TWILIO_AUTH_TOKEN = "your_auth_token"
+TWILIO_PHONE_NUMBER = "your_twilio_number"
+RECIPIENT_PHONE_NUMBER = "recipient_number"
+
+
+```
+Make sure to replace the placeholders with your actual Twilio credentials and recipient phone numbers.
+
+### Deployment
+- Push the repository to a public/private GitHub repository.
+- Deploy on Streamlit Cloud:
+- Log in to Streamlit Cloud.
+- Connect your repository and specify compliance_tracker.py as the main file.
+- Add the secrets in the Streamlit Cloud settings.
+
+
+
+### Contact 
+For any issues or suggestions, feel free to contact:
+
+- Name: Aditya Narayna Jha
+- Email: adityajha8906@gmail.com
+
+
 
 
 
