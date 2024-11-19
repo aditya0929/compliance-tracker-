@@ -5,8 +5,8 @@ import sqlite3
 from twilio.rest import Client
 from datetime import datetime, timedelta
 
-# SQLite database connection
-conn = sqlite3.connect('/content/compliance_tracker.db')
+conn = sqlite3.connect("compliance_tracker.db")
+
 cursor = conn.cursor()
 
 TWILIO_ACCOUNT_SID = st.secrets["TWILIO_ACCOUNT_SID"]
