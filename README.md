@@ -87,7 +87,7 @@ Make sure to replace the placeholders with your actual Twilio credentials and re
 ### Contact 
 For any issues or suggestions, feel free to contact:
 
-- Name: Aditya Narayna Jha
+- Name: Aditya Narayan Jha
 - Email: adityajha8906@gmail.com
 
 
