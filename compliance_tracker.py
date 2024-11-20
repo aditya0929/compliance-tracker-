@@ -147,7 +147,6 @@ def escalate_milestones():
         message = f"Escalation Alert: Milestone '{milestone.title}' is overdue and non-compliant."
         send_sms(message)
 
-# Dashboard for viewing milestones and updating status
 def dashboard():
     st.title("Compliance Tracker Dashboard")
     milestones = pd.read_sql_query("SELECT * FROM milestones", conn)
@@ -157,13 +156,9 @@ def dashboard():
     st.subheader("Enter Your Phone Number")
     phone_number = st.text_input(
         "Phone Number",
-        key="user_phone_number",
-        value=st.session_state.get("user_phone_number", "")
+        key="user_phone_number",  # Key ties this input to `st.session_state`
+        value=st.session_state.get("user_phone_number", "")  # Use session state as default value
     )
-
-    if phone_number:
-        st.session_state["user_phone_number"] = phone_number
-        st.success(f"Phone number saved: {phone_number}")
 
     # Update Status Form
     st.subheader("Update Milestone Status")
@@ -181,6 +176,7 @@ def dashboard():
     st.subheader("Compliance Score")
     score = calculate_compliance_score()
     st.write(f"Compliance Score: {score}%")
+
 
 
 # Add New Milestone
