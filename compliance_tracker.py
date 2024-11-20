@@ -17,6 +17,7 @@ RECIPIENT_PHONE_NUMBER = st.secrets["RECIPIENT_PHONE_NUMBER"]
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
+# Notifications section
 def notifications():
     if "logged_in" not in st.session_state or not st.session_state.logged_in:
         authenticate()  # Prompt for login if not logged in
@@ -24,8 +25,15 @@ def notifications():
 
     st.title("Send SMS Notifications")
 
-    # Allow admin to input their phone number
-    admin_phone_number = st.text_input("Enter the phone number to send SMS to", key="admin_phone_number")
+    # Pre-fill phone number from session state
+    admin_phone_number = st.text_input(
+        "Admin Phone Number",
+        key="admin_phone_number",
+        value=st.session_state.get("user_phone_number", "")
+    )
+
+    if admin_phone_number:
+        st.session_state["user_phone_number"] = admin_phone_number
 
     if not admin_phone_number:
         st.warning("Please enter a valid phone number.")
@@ -41,31 +49,24 @@ def notifications():
         # Convert the list of milestones into a DataFrame
         upcoming_milestones_df = pd.DataFrame(
             upcoming_milestones,
-            columns=["serial number","id", "title", "status", "due_date"]
+            columns=["serial number", "id", "title", "status", "due_date"]
         )
         st.dataframe(upcoming_milestones_df)
 
         # Send SMS for upcoming milestones
         for _, milestone in upcoming_milestones_df.iterrows():
-            # Use the 'id' column to generate a unique key for each button
             button_key = f"send_sms_button_{milestone['id']}"
             if st.button(f"Send SMS for '{milestone['title']}'", key=button_key):
-                # Convert due_date to a proper format if needed
                 due_date = (
                     milestone["due_date"].strftime("%Y-%m-%d")
                     if isinstance(milestone["due_date"], datetime)
                     else milestone["due_date"]
                 )
-
-                # Construct the message
                 message = (
                     f"Reminder: Milestone '{milestone['title']}' is due on {due_date}.\n"
                     f"Current Status: {milestone['status']}."
                 )
-
                 send_sms(message, admin_phone_number)
-
-
 
 def send_sms(message, phone_number):
     try:
@@ -152,6 +153,18 @@ def dashboard():
     milestones = pd.read_sql_query("SELECT * FROM milestones", conn)
     st.dataframe(milestones)
 
+    # Capture phone number and store it in session state
+    st.subheader("Enter Your Phone Number")
+    phone_number = st.text_input(
+        "Phone Number",
+        key="user_phone_number",
+        value=st.session_state.get("user_phone_number", "")
+    )
+
+    if phone_number:
+        st.session_state["user_phone_number"] = phone_number
+        st.success(f"Phone number saved: {phone_number}")
+
     # Update Status Form
     st.subheader("Update Milestone Status")
     milestone_id = st.number_input("Milestone ID", min_value=1, step=1)
@@ -161,13 +174,14 @@ def dashboard():
         conn.commit()
         milestone = cursor.execute("SELECT title FROM milestones WHERE id=?", (milestone_id,)).fetchone()
         if milestone:
-            send_sms(f"Milestone '{milestone[0]}' updated to '{new_status}'.")
+            send_sms(f"Milestone '{milestone[0]}' updated to '{new_status}'.", phone_number)
         st.success(f"Milestone {milestone_id} updated to {new_status}!")
 
     # Display compliance score
     st.subheader("Compliance Score")
     score = calculate_compliance_score()
     st.write(f"Compliance Score: {score}%")
+
 
 # Add New Milestone
 def add_milestone():
