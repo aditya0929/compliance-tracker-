@@ -25,7 +25,7 @@ def notifications():
     st.title("Send SMS Notifications")
 
     # Allow admin to input their phone number
-    admin_phone_number = st.text_input("Enter the phone number to send SMS to [ADD THE COUNTRY CODE eg - +917929384293", key="admin_phone_number")
+    admin_phone_number = st.text_input("Enter the phone number to send SMS to", key="admin_phone_number")
 
     if not admin_phone_number:
         st.warning("Please enter a valid phone number.")
@@ -50,10 +50,19 @@ def notifications():
             # Use the 'id' column to generate a unique key for each button
             button_key = f"send_sms_button_{milestone['id']}"
             if st.button(f"Send SMS for '{milestone['title']}'", key=button_key):
+                # Convert due_date to a proper format if needed
+                due_date = (
+                    milestone["due_date"].strftime("%Y-%m-%d")
+                    if isinstance(milestone["due_date"], datetime)
+                    else milestone["due_date"]
+                )
+
+                # Construct the message
                 message = (
-                    f"Reminder: Milestone '{milestone['title']}' is due on {milestone['due_date']}.\n"
+                    f"Reminder: Milestone '{milestone['title']}' is due on {due_date}.\n"
                     f"Current Status: {milestone['status']}."
                 )
+
                 send_sms(message, admin_phone_number)
 
 
