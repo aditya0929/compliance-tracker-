@@ -27,7 +27,7 @@ def notifications():
 
     # Pre-fill phone number from session state
     admin_phone_number = st.text_input(
-        "Specify Phone Number to send alert with country code (eg - +9153833541)",
+        "Specify Phone Number to send alert with country code (eg - +91853833541)",
         key="admin_phone_number",
         value=st.session_state.get("user_phone_number", "")
     )
