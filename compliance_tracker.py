@@ -17,17 +17,57 @@ RECIPIENT_PHONE_NUMBER = st.secrets["RECIPIENT_PHONE_NUMBER"]
 
 client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-# Function to send SMS
-def send_sms(message):
+def notifications():
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        authenticate()  # Prompt for login if not logged in
+        return  # Stop the execution of notifications if not logged in
+
+    st.title("Send SMS Notifications")
+
+    # Allow admin to input their phone number
+    admin_phone_number = st.text_input("Enter the phone number to send SMS to", key="admin_phone_number")
+
+    if not admin_phone_number:
+        st.warning("Please enter a valid phone number.")
+        return
+
+    # Fetch upcoming milestones from the database
+    upcoming_milestones = get_upcoming_milestones()
+    if not upcoming_milestones:
+        st.write("No upcoming milestones to notify!")
+    else:
+        st.write("Upcoming Milestones for Notification:")
+
+        # Convert the list of milestones into a DataFrame
+        upcoming_milestones_df = pd.DataFrame(
+            upcoming_milestones,
+            columns=["id", "title", "status", "due_date", "escalated"]
+        )
+        st.dataframe(upcoming_milestones_df)
+
+        # Send SMS for upcoming milestones
+        for _, milestone in upcoming_milestones_df.iterrows():
+            # Use the 'id' column to generate a unique key for each button
+            button_key = f"send_sms_button_{milestone['id']}"
+            if st.button(f"Send SMS for '{milestone['title']}'", key=button_key):
+                message = (
+                    f"Reminder: Milestone '{milestone['title']}' is due on {milestone['due_date']} "
+                    f"and is currently '{milestone['status']}'."
+                )
+                send_sms(message, admin_phone_number)
+
+
+def send_sms(message, phone_number):
     try:
         client.messages.create(
             body=message,
             from_=TWILIO_PHONE_NUMBER,
-            to=RECIPIENT_PHONE_NUMBER
+            to=phone_number
         )
         st.success("SMS sent successfully!")
     except Exception as e:
         st.error(f"Failed to send SMS: {e}")
+
 
 # Simple authentication credentials
 USERNAME = "admin"  # Change to your desired username
@@ -119,46 +159,6 @@ def dashboard():
     score = calculate_compliance_score()
     st.write(f"Compliance Score: {score}%")
 
-# Add New Milestone
-def add_milestone():
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        authenticate()  # Prompt for login if not logged in
-        return  # Stop the execution of add_milestone if not logged in
-
-    st.title("Add New Milestone")
-    title = st.text_input("Milestone Title")
-    due_date = st.date_input("Due Date")
-    if st.button("Add Milestone"):
-        cursor.execute("INSERT INTO milestones (title, due_date) VALUES (?, ?)", (title, due_date))
-        conn.commit()
-        st.success(f"Milestone '{title}' added successfully!")
-
-# Send SMS Notifications
-def notifications():
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        authenticate()  # Prompt for login if not logged in
-        return  # Stop the execution of notifications if not logged in
-
-    st.title("Send SMS Notifications")
-
-    # Fetch upcoming milestones from the database
-    upcoming_milestones = get_upcoming_milestones()
-    if not upcoming_milestones:
-        st.write("No upcoming milestones to notify!")
-    else:
-        st.write("Upcoming Milestones for Notification:")
-
-        # Convert the list of milestones into a DataFrame
-        upcoming_milestones_df = pd.DataFrame(upcoming_milestones, columns=['id', 'title', 'status', 'due_date', 'escalated'])
-        st.dataframe(upcoming_milestones_df)
-
-        # Send SMS for upcoming milestones
-        for _, milestone in upcoming_milestones_df.iterrows():
-            # Use the 'id' column to generate a unique key for each button
-            button_key = f"send_sms_button_{milestone['id']}"
-            if st.button(f"Send SMS for '{milestone['title']}'", key=button_key):
-                message = f"Reminder: Milestone '{milestone['title']}' is due on {milestone['due_date']} and is currently '{milestone['status']}'."
-                send_sms(message)
 
 # Navigation
 def main():
