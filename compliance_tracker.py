@@ -41,7 +41,7 @@ def notifications():
         # Convert the list of milestones into a DataFrame
         upcoming_milestones_df = pd.DataFrame(
             upcoming_milestones,
-            columns=["id", "title", "status", "due_date"]
+            columns=["serial number","id", "title", "status", "due_date"]
         )
         st.dataframe(upcoming_milestones_df)
 
