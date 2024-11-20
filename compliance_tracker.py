@@ -65,19 +65,6 @@ def get_upcoming_milestones():
                           (milestones['status'] != "Completed")]
     return upcoming
 
-# Send automatic SMS notifications
-def send_bulk_sms_for_upcoming_milestones():
-    milestones = get_upcoming_milestones()
-
-    if milestones.empty:
-        st.write("No upcoming milestones!")
-    else:
-        st.dataframe(milestones)
-        # Automatically send SMS for each upcoming milestone
-        for _, milestone in milestones.iterrows():
-            message = f"Reminder: Milestone '{milestone['title']}' is due on {milestone['due_date']}."
-            send_sms(message)
-
 # Dashboard for users
 def user_dashboard():
     st.title("User Dashboard")
@@ -103,19 +90,37 @@ def add_milestone():
         conn.commit()
         st.success(f"Milestone '{title}' added successfully!")
 
+# Send SMS notifications (Admin only)
+def notifications():
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        authenticate()
+        return
+
+    st.title("Send SMS Notifications")
+    milestones = get_upcoming_milestones()
+
+    if milestones.empty:
+        st.write("No upcoming milestones!")
+    else:
+        st.dataframe(milestones)
+        if st.button("Send Bulk SMS for Upcoming Milestones"):
+            for _, milestone in milestones.iterrows():
+                message = f"Reminder: Milestone '{milestone['title']}' is due on {milestone['due_date']}."
+                send_sms(message)
+
 # Navigation menu
 def main():
-    # Automatically send SMS notifications for upcoming milestones
-    send_bulk_sms_for_upcoming_milestones()
-
     st.sidebar.title("Navigation")
-    menu = ["Dashboard-user", "Add Milestone-admin"]
+    menu = ["Dashboard-user", "Add Milestone-admin", "Send SMS Notifications-admin"]
     choice = st.sidebar.radio("Menu", menu)
 
     if choice == "Dashboard-user":
         user_dashboard()
     elif choice == "Add Milestone-admin":
         add_milestone()
+    elif choice == "Send SMS Notifications-admin":
+        notifications()
 
-if __name__ == "__main__":
+if _name_ == "_main_":
     main()
+
