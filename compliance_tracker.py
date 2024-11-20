@@ -153,7 +153,7 @@ def dashboard():
     st.dataframe(milestones)
 
     # Capture phone number and store it in session state
-    st.subheader("Enter Your Phone Number to get update status with country code (eg - +91856783782")
+    st.subheader("Enter Your Phone Number to get update status with country code (eg - +91856783782)")
     phone_number = st.text_input(
         "Phone Number",
         key="user_phone_number",  # Key ties this input to `st.session_state`
