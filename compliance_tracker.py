@@ -27,7 +27,7 @@ def notifications():
 
     # Pre-fill phone number from session state
     admin_phone_number = st.text_input(
-        "Admin Phone Number",
+        "Specify Phone Number to send alert with country code (eg - +9153833541)",
         key="admin_phone_number",
         value=st.session_state.get("user_phone_number", "")
     )
@@ -153,7 +153,7 @@ def dashboard():
     st.dataframe(milestones)
 
     # Capture phone number and store it in session state
-    st.subheader("Enter Your Phone Number")
+    st.subheader("Enter Your Phone Number to get update status with country code (eg - +91856783782")
     phone_number = st.text_input(
         "Phone Number",
         key="user_phone_number",  # Key ties this input to `st.session_state`
