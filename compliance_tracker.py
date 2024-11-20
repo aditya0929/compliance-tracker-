@@ -169,6 +169,19 @@ def dashboard():
     score = calculate_compliance_score()
     st.write(f"Compliance Score: {score}%")
 
+# Add New Milestone
+def add_milestone():
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        authenticate()  # Prompt for login if not logged in
+        return  # Stop the execution of add_milestone if not logged in
+
+    st.title("Add New Milestone")
+    title = st.text_input("Milestone Title")
+    due_date = st.date_input("Due Date")
+    if st.button("Add Milestone"):
+        cursor.execute("INSERT INTO milestones (title, due_date) VALUES (?, ?)", (title, due_date))
+        conn.commit()
+        st.success(f"Milestone '{title}' added successfully!")
 
 # Navigation
 def main():
