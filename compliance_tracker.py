@@ -117,5 +117,5 @@ def main():
     elif choice == "Add Milestone-admin":
         add_milestone()
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     main()
