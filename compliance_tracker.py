@@ -44,7 +44,6 @@ def authenticate():
             st.session_state.logged_in = True
             st.sidebar.success("Login successful!")
         else:
-            st.session_state.logged_in = False
             st.sidebar.error("Invalid credentials!")
 
 # Function to calculate compliance score
@@ -114,96 +113,69 @@ def dashboard():
             message = f"Milestone '{milestone_title}' has been updated to '{new_status}'."
             send_sms(message)
 
+        # Notify the user that the update was successful
+        st.success(f"Milestone {milestone_id} updated to '{new_status}'!")
+
+# Add or upload milestones in the admin section
+def add_milestone():
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        authenticate()
+        return
+
+    st.title("Add New Milestone (Admin Section)")
+
+    # Form to add milestones manually
+    with st.form("add_milestone_form"):
+        title = st.text_input("Milestone Title")
+        status = st.selectbox("Status", ["Pending", "Completed", "Escalated"])
+        due_date = st.date_input("Due Date")
+        submit = st.form_submit_button("Add Milestone")
+
+        if submit:
+            cursor.execute(
+                "INSERT INTO milestones (title, status, due_date) VALUES (?, ?, ?)",
+                (title, status, due_date),
+            )
+            conn.commit()
+            st.success(f"Milestone '{title}' added successfully!")
+
+    # Option to upload milestones via PDF
+    st.subheader("Or Upload Milestones via PDF")
+    uploaded_pdf = st.file_uploader("Choose a PDF file", type="pdf")
+
+    if uploaded_pdf:
+        read_and_update_pdf(uploaded_pdf)
+
+# Notifications feature for admins
+def notifications():
+    if "logged_in" not in st.session_state or not st.session_state.logged_in:
+        authenticate()
+        return
+
+    st.title("Send SMS Notifications")
+    milestones = pd.read_sql_query("SELECT * FROM milestones WHERE status != 'Completed'", conn)
+    st.dataframe(milestones)
+
+    # Create a button for each pending milestone to send notification manually
+    for idx, row in milestones.iterrows():
+        message = f"Reminder: Milestone '{row['title']}' is due on {row['due_date']}."
+        
+        # Use the row index (or any unique attribute) as a key to avoid duplicate button IDs
+        if st.button(f"Send Notification for '{row['title']}'", key=f"send_button_{row['id']}"):
+            send_sms(message)
+
 # Navigation
 def main():
     st.sidebar.title("Navigation")
-    menu = ["Dashboard-user", "Add Milestone-admin", "Send SMS Notifications-admin"]
+    menu = ["Dashboard", "Add Milestone (Admin)", "Send Notifications (Admin)"]
     choice = st.sidebar.radio("Go to", menu)
 
-    if choice == "Dashboard-user":
+    if choice == "Dashboard":
         dashboard()
-    elif choice == "Add Milestone-admin":
+    elif choice == "Add Milestone (Admin)":
         add_milestone()
-    elif choice == "Send SMS Notifications-admin":
+    elif choice == "Send Notifications (Admin)":
         notifications()
-
-# Function to add new milestones
-def add_milestone():
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        authenticate()  # Prompt for login if not logged in
-        return  # Stop the execution of add_milestone if not logged in
-
-    st.title("Add New Milestone")
-    title = st.text_input("Milestone Title")
-    due_date = st.date_input("Due Date")
-    if st.button("Add Milestone"):
-        cursor.execute("INSERT INTO milestones (title, due_date) VALUES (?, ?)", (title, due_date))
-        conn.commit()
-        st.success(f"Milestone '{title}' added successfully!")
-
-# Notifications section
-def notifications():
-    if "logged_in" not in st.session_state or not st.session_state.logged_in:
-        authenticate()  # Prompt for login if not logged in
-        return  # Stop the execution of notifications if not logged in
-
-    st.title("Send SMS Notifications")
-
-    # Pre-fill phone number from session state
-    admin_phone_number = st.text_input(
-        "Specify Phone Number to send alert with country code (eg - +919153831641)",
-        key="admin_phone_number",
-        value=st.session_state.get("user_phone_number", "")
-    )
-
-    if admin_phone_number:
-        st.session_state["user_phone_number"] = admin_phone_number
-
-    if not admin_phone_number:
-        st.warning("Please enter a valid phone number.")
-        return
-
-    # Fetch upcoming milestones from the database
-    upcoming_milestones = get_upcoming_milestones()
-    if not upcoming_milestones:
-        st.write("No upcoming milestones to notify!")
-    else:
-        st.write("Upcoming Milestones for Notification:")
-
-        # Convert the list of milestones into a DataFrame
-        upcoming_milestones_df = pd.DataFrame(
-            upcoming_milestones,
-            columns=["serial number", "id", "title", "status", "due_date"]
-        )
-        st.dataframe(upcoming_milestones_df)
-
-        # Send SMS for upcoming milestones
-        for _, milestone in upcoming_milestones_df.iterrows():
-            button_key = f"send_sms_button_{milestone['id']}"
-            if st.button(f"Send SMS for '{milestone['title']}'", key=button_key):
-                due_date = (
-                    milestone["due_date"].strftime("%Y-%m-%d")
-                    if isinstance(milestone["due_date"], datetime)
-                    else milestone["due_date"]
-                )
-                message = (
-                    f"Reminder: Milestone '{milestone['title']}' is due on {due_date}.\n"
-                    f"Current Status: {milestone['status']}."
-                )
-                send_sms(message)
-
-# Get upcoming milestones
-def get_upcoming_milestones():
-    milestones = pd.read_sql_query("SELECT * FROM milestones", conn)
-    upcoming_milestones = []
-    current_date = datetime.now().date()
-    
-    for milestone in milestones.itertuples():
-        due_date = datetime.strptime(milestone.due_date, "%Y-%m-%d").date()
-        if current_date <= due_date <= (current_date + timedelta(days=7)) and milestone.status != "Completed":
-            upcoming_milestones.append(milestone)
-    
-    return upcoming_milestones
 
 if __name__ == "__main__":
     main()
