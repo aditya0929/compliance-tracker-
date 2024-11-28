@@ -6,7 +6,10 @@
 
 
 ## Overview  
-The `Compliance Tracker` is a web-based application designed to help organizations manage and track compliance milestones effectively. It allows users to add milestones, update their statuses, calculate compliance scores, identify overdue tasks, and send notifications (via SMS or WhatsApp) for important updates. Additionally, the application supports PDF import functionality, enabling users to upload PDFs containing milestone data. The system automatically extracts relevant information from the PDF and updates the database with new milestones, streamlining the process of milestone management.
+The `Compliance Tracker` is a web-based application designed to help organizations manage and track compliance milestones effectively. It allows users to add milestones, update their statuses, calculate compliance scores, identify overdue tasks, and send notifications (via SMS or WhatsApp) for important updates.
+
+Additionally, the application supports PDF import functionality, enabling users to upload PDFs containing milestone data. The system automatically extracts relevant information from the PDF and updates the database with new milestones, streamlining the process of milestone management.
+
 This project was developed entirely on **Google Colab** with the help of **ngrok** for hosting and exposing the local Streamlit app to the web during the development phase.
 
 ---
