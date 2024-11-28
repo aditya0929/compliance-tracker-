@@ -59,32 +59,41 @@ def check_overdue_milestones():
     overdue = milestones[(milestones['due_date'] < datetime.now().strftime('%Y-%m-%d')) & (milestones['status'] != "Completed")]
     return overdue
 
-# Function to read and update milestones from a PDF
 def read_and_update_pdf(pdf_file):
     reader = pypdf.PdfReader(pdf_file)
     data = []
 
+    # Extracting text from the PDF pages
     for page in reader.pages:
-        lines = page.extract_text().split('/n')
+        lines = page.extract_text().split('\n')  # Fix line split
         for line in lines:
-            if "id" not in line.lower():
+            if "id" not in line.lower():  # Ignore lines with 'id' (if it's part of a header or unwanted text)
                 parts = line.split()
-                if len(parts) >= 4:
-                    title = " ".join(parts[1:-2])
-                    status = parts[-2]
-                    due_date = parts[-1]
-                    data.append((title, status, due_date))
+                if len(parts) >= 4:  # Check that each line has enough data
+                    title = " ".join(parts[1:-2])  # Join title parts
+                    status = parts[-2]  # Status is second to last part
+                    due_date = parts[-1]  # Due date is the last part
+                    data.append((title, status, due_date))  # Append to data list
 
+    # Debug: Check if data is extracted correctly
+    st.write("Extracted Data:", data)
+
+    # Inserting the extracted milestones into the database
     for title, status, due_date in data:
         cursor.execute("SELECT MAX(id) FROM milestones")
         max_id = cursor.fetchone()[0]
-        new_id = 1 if max_id is None else max_id + 1
+        new_id = 1 if max_id is None else max_id + 1  # Increment ID
+
+        # Insert the milestone data into the database
         cursor.execute(
             "INSERT INTO milestones (id, title, status, due_date) VALUES (?, ?, ?, ?)",
             (new_id, title, status, due_date),
         )
-    conn.commit()
-    st.success("PDF milestones added successfully!")
+
+    conn.commit()  # Commit the transaction to save changes to the database
+
+    st.success("PDF milestones added successfully!")  # Notify success
+
 
 # Dashboard to view milestones and compliance score
 def dashboard():
